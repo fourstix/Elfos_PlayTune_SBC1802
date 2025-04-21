@@ -22,7 +22,19 @@
 ;   RF = pointer to buffer with miditunes data
 ;
 ; Returns: 
-;   DF = 1 if PSG not found
+;   DF = 1 Play stopped by user pressing Input
+;   DF = 0 Entire song played
 ;-------------------------------------------------------------------------------
 
             extrn   psg_player
+;-------------------------------------------------------------------------------
+; Public library routine to detect psg hardware
+;
+; Parameters:
+;   (None)
+;
+; Returns: 
+;   DF = 1 Error, PSG not found
+;   DF = 0 OK, PSG found
+;-------------------------------------------------------------------------------            
+            extrn   psg_detect

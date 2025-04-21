@@ -9,7 +9,11 @@
 #include    ../include/sbc1802_psg.inc
 
         proc psg_end
+        ; Select the sound generator I/O group
         sex  r3                 ; set x = p for inline data
+        out  GROUP
+        db   PSGGRP 
+
 
         ; OUTPSG1(PSGR10, $00)	; mute channel A1
         out  PSG1ADR 

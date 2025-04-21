@@ -14,6 +14,8 @@
 #define PPIGRP	  $5	;  "    "    "  CDP1851 parallel interface
 #define PSGGRP	  $7	; I/O group for AY-3-8912 sound generator
 
+#define BRNI      bn1 ; branch on no imput (/EF1 on SBC1802)
+
 ; *** AY-3-8912 PSG I/O group definitions ***
 ;   Note that the SBC1802 has two PSG chips, and there's a PSG1ADR and also a
 ; PSG2ADR defined here.  There is, however, ONLY ONE PSGDATA address!  That's

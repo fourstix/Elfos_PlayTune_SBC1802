@@ -10,24 +10,20 @@
 #define equ .equ
 #endif
 
-; Define address for standard BIOS vectors
-#ifndef BIOS
-#define BIOS 0ff00h
-#endif
+; BIOS ENTRY VECTOR TABLES ...
+;   Note that for TASM these must be .EQUs, not #defines ...
+BIOS:	 equ	0FF00h	; standard BIOS entry vector table
+EBIOS: equ	0F800h	; extended BIOS entry vector table
+SBIOS: equ	0F000h	; SBC1802  BIOS entry vector table
 
-; Define address for extended BIOS vectors
-#ifndef EBIOS
-#define EBIOS 0f800h
-#endif
-
-#ifndef _TASM_
+#ifndef TASM
 scall:      equ  r4                    ; register for SCALL
 sret:       equ  r5                    ; register for SRET
-
-call:       equ  0ffe0h                ; depricated
-ret:        equ  0fff1h                ; depricated
 #endif
 
+; Standard BIOS entry points ...
+f_call:     equ  0ffc6h                ; SCRT CALL routine
+f_return:   equ  0ffd8h                ; SCRT RETURN routine
 f_boot:     equ  (BIOS+00h)            ; boot from ide device
 f_type:     equ  (BIOS+03h)            ; type 1 character to console
 f_read:     equ  (BIOS+06h)            ; read 1 character from console
@@ -72,26 +68,75 @@ f_isalnum:  equ  (BIOS+78h)            ; determine if D is alpha or numeric
 f_idnum:    equ  (BIOS+7bh)            ; determine type of ascii number
 f_isterm:   equ  (BIOS+7eh)            ; determine if D is a termination char
 f_getdev:   equ  (BIOS+81h)            ; get supported devices
-
+f_nbread:   equ  (BIOS+84h)            ; non-blocking read from console
+f_sdread:   equ  (BIOS+87h)            ; read storage device sector
+f_sdwrite:  equ  (BIOS+8Ah)            ; write storage device sector
+f_sdreset:  equ  (BIOS+8Dh)            ; reset storage device subsystem
+f_sdboot:   equ  (BIOS+90h)	       ; boot from a specific storage device
+f_sdsize:   equ  (BIOS+93h)	       ; deprecated
 f_version:  equ  (BIOS+0f9h)           ; 3 bytes holding bios version number
+f_extbver:  equ  (f_version-2)	       ; 2 byte pointer to extended bios version
+f_checksum: equ  $fffc		       ; 4 bytes with the STG EPROM checksum
+
 
 ; "Extended" BIOS vectors
-
-f_bread:    equ  (EBIOS+00h)        ; read from onboard serial port
-f_btype:    equ  (EBIOS+03h)        ; write to onboard serial port
-f_btest:    equ  (EBIOS+06h)        ; test onboard serial port
-f_utype:    equ  (EBIOS+09h)        ; write to disk board UART
-f_uread:    equ  (EBIOS+0ch)        ; read from disk board UART
-f_utest:    equ  (EBIOS+0fh)        ; test disk board UART
-f_usetbd:   equ  (EBIOS+12h)        ; set disk board UART baud rate and format
+f_bread:    equ  (EBIOS+00h)        ; read from bit bang serial port
+f_btype:    equ  (EBIOS+03h)        ; write to bit bang serial port
+f_btest:    equ  (EBIOS+06h)        ; test bit bang serial port
+f_utype:    equ  (EBIOS+09h)        ; write to console UART
+f_uread:    equ  (EBIOS+0ch)        ; read from console UART
+f_utest:    equ  (EBIOS+0fh)        ; test console UART
+f_usetbd:   equ  (EBIOS+12h)        ; set console UART baud rate and format
 f_gettod:   equ  (EBIOS+15h)        ; read time of day clock
 f_settod:   equ  (EBIOS+18h)        ; set time of day clock
 f_rdnvr:    equ  (EBIOS+1bh)        ; read non volatile RAM
 f_wrnvr:    equ  (EBIOS+1eh)        ; write non volatile RAM
-f_idesize:  equ  (EBIOS+21h)        ; return size of attached IDE drive(s)
-f_ideid:    equ  (EBIOS+24h)        ; return device data for IDE drive(s)
-f_tmtoas:   equ  (EBIOS+2ah)        ; time to ASCII string
-f_dttoas:   equ  (EBIOS+27h)        ; date to ASCII string
+f_idesize:  equ  (EBIOS+21h)        ; deprecated
+f_ideid:    equ  (EBIOS+24h)        ; deprecated
+f_tmtoas:   equ  (EBIOS+2ah)        ; deprecated
+f_dttoas:   equ  (EBIOS+27h)        ; deprecated
 f_rtctest:  equ  (EBIOS+2dh)        ; test size and presence of RTC/NVR
-f_astodt:   equ  (EBIOS+30h)        ; convert ASCII string to date
-f_astotm:   equ  (EBIOS+33h)        ; convert ASCII string to time
+f_astodt:   equ  (EBIOS+30h)        ; deprecated
+f_astotm:   equ  (EBIOS+33h)        ; deprecated
+f_nvrcchk:  equ  (EBIOS+36h)	    ; compute NVR checksum
+
+; BIOS capability bits returned by f_getdev ...
+;fgd_ide     equ  BIT0		    ; IDE support
+;fgd_floppy  equ  BIT1               ; floppy disk support
+;fgd_bbser   equ  BIT2               ; software (i.e. bit-banged) serial support
+;fgd_uart    equ  BIT3               ; UART support
+;fgd_rtc     equ  BIT4               ; real time clock support
+;fgd_nvr     equ  BIT5               ; non-volatile RAM support
+;fgd_f8vec   equ  BIT6               ; extended BIOS vectors at $F800 implemented
+;fgd_f0vec   equ  BIT7               ; extended BIOS vectors at $F000 implemented
+;fgd_nbread  equ  BIT8               ; f_nbread implemented
+;fgd_sdfun   equ  BIT9		    ; f_sdread/f_sdwrite/f_sdreset implemented
+
+; SBC1802 specific vectors and functions ...
+; Program control functions ...
+f_trap:	    equ	 (SBIOS+00h)	    ; breakpoint trap entry
+f_continue: equ  (SBIOS+03h)        ; continue after a trap
+f_run:      equ  (SBIOS+06h)        ; run a program with P=0
+; TU58 serial tape/disk functions ...
+f_tuinit:   equ  (SBIOS+09h)        ; initialize TU58
+f_turead:   equ  (SBIOS+0ch)        ; read TU58 sector
+f_tuwrite:  equ  (SBIOS+0fh)        ; write TU58 sector
+; SLU1 serial port functions ...
+f_sl1out:   equ  (SBIOS+12h)        ; blocking output to SLU1
+f_sl1hit:   equ  (SBIOS+15h)        ; test SLU1 for input
+f_sl1in:    equ  (SBIOS+18h)        ; blocking read w/o echo
+f_sl1get:   equ  (SBIOS+1bh)        ; blocking read with echo
+f_sl1nbr:   equ  (SBIOS+1eh)        ; non-blocking read w/o echo
+; 
+f_testhwf:  equ  (SBIOS+21h)	    ; test SBC1802 hardware flags
+; Parallel Centronics printer functions ...
+f_prtinit:  equ  (SBIOS+24h)	    ; initialize parallel printer
+f_prtchar:  equ  (SBIOS+27h)	    ; print one character
+f_prttext:  equ  (SBIOS+2ah)	    ; print null terminated string
+f_prtstat:  equ  (SBIOS+2dh)	    ; return printer status
+
+; SBC1802 debugger breakpoint (cause a trap to f_trap)...
+#define	BPT	MARK\ SEP 1
+
+; Spare Time Gizmos BIOS identifier ...
+STGBIOS:    equ  3
