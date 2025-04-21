@@ -2,57 +2,90 @@
 ; This library supports the AY-3-8912 sound chips on the EXP1802 expansion 
 ; card running on the SBC1802 mini-computer. 
 ;-------------------------------------------------------------------------------
-
+; This is the public library routine to play a stream from miditunes.
+;
+; Parameters:
+;   RF = pointer to buffer with miditunes data
+;   RC.0 = midi key offset
+;
+; Registers Used:
+;   RD = data value
+;   R8 = sub routine pointer
+;   R7 = table pointer
+;
+; Returns: 
+;   DF = 1 if Input pressed to stop playing
+;-------------------------------------------------------------------------------
 
 #include    ../include/ops.inc
 #include    ../include/sbc1802_psg.inc
 
 
         extrn   midinote
+        
+
 ;++
 ;   This is the main player loop of the AY-3-8912 music player.  It fetches the
-; next note or function from the music stream and programmes the 8912 accordingly.
+; next note or function from the music stream and programs the 8912 accordingly.
 ; rf should point at the music stream.
 ;--
         proc    psg_play_stream
-playlp:	ldn  rf		   ; look ahead at the next byte
-	      ani  $80     ; check only the MSB
-	      lbnz play1	 ; branch if it's a tone generator function
+        
+playlp:	 sex  r3      ; set x = p for inline data        
+         out  GROUP   ; select the base board I/O group for Input
+         db   BASEGRP 
+         BRNI playon  ; check for input to cancel
+         stc          ; Set DF to indicate play stopped  
+         sex  r2      ; set x back to stack pointer for return
+         RETURN       ; return if input pressed    
+
+playon: out  GROUP    ; set back to the PSG Group
+        db   PSGGRP 
+        sex  r2       ; set x back to stack pointer
+
+        ldn  rf		    ; look ahead at the next byte
+	      ani  $80      ; check only the MSB
+	      lbnz play1	  ; branch if it's a tone generator function
 
 ; It's a delay - this byte and the next byte are the interval, in milliseconds.
-	      lda	 rf        ; get the first delay byte
-	      phi  rd		     ; they're in big endian ordering
-	      lda  rf		     ; and the second delay byte
-	      plo  rd		     ; ...
+	      lda	 rf       ; get the first delay byte
+	      phi  rd		    ; they're in big endian ordering
+	      lda  rf		    ; and the second delay byte
+	      plo  rd		    ; ...
 ;   We just delay using a loop at the DLY1MS macro, the latter which will adjust
 ; for the CPU clock frequency.  The bad thing is that the DLY1MS macro suffers
 ; from roundoff errors, and if we use it inside a loop then those errors will
 ; accumulate.  That makes the actual delay here a bit unpredictable.  It'd be
 ; nice to fix this, but for the moment we'll just live with it.
 play10:	glo  rd
-        str  r2	       ; see if the count is zero
+        str  r2	      ; see if the count is zero
 	      ghi  rd
-        or		         ; ...
-	      lbz  playlp		 ; quit when it's zereo
+        or		        ; ...
+	      lbz  playlp		; quit when it's zereo
         
-        ldi  DLYCONST  ; delay for 1 ms
-dly1ms: smi  1         ; count down until timer gone
+        ldi  DLYCONST ; delay for 1 ms
+dly1ms: smi  1        ; count down until timer gone
         bnz  dly1ms
         
 	      dec  rd
-        lbr  play10    ; decrement the count until it's zero
+        lbr  play10   ; decrement the count until it's zero
 
 ;   It's not a delay.  A byte of $9t (where 't' is the tone generator number)
 ; starts a tone playing, and $8t stops it.  Officially the only other defined
 ; value is $F0, which means end of tune, but we interpret anything else as the
 ; end and stop playing.
 
-play1:	ldn  rf		     ; get the byte code again
-	      ani	 $F0		   ; look at just the top nibble
-	      smi	 $90		   ; check for $80 or $90
-	      lbz	 play3		 ; branch if $80 - start a tone
-	      lbnf play2		 ; branch if $90 - stop a tone
-	      RETURN			   ; otherwise we're done playing - quit!
+play1:	ldn  rf		    ; get the byte code again
+	      ani	 $F0		  ; look at just the top nibble
+	      smi	 $90		  ; check for $80 or $90
+	      lbz	 play3		; branch if $90 - start a tone
+	      lbnf play2		; branch if $80 - stop a tone
+quit:   sex  r3       ; set x = P for inline data
+        out  GROUP    ; select the base board I/O group again
+        db   BASEGRP 
+        clc           ; make sure DF is off
+        sex  r2       ; set x = SP for return  
+        RETURN			  ; otherwise we're done playing - quit!
 
 ;   Stop a tone generator.  This is a single byte code, and the lower nibble is
 ; the tone generator index - 0 .. 5.  In theory there could be more tone
@@ -84,7 +117,11 @@ play3:	lda  rf
 ; Play the MIDI note in D on PSG#1 tone generator A ...
 playa1:	CALL ldnote	  ; get the tone generator setting
         glo  rd
-        CALL wrpsg1 	; write the low tone byte to R0
+        lbnz conta1   ; non-zero so continue
+        ghi  rd
+        lbz  mutea1   ; if zero mute channel instead
+        glo  rd
+conta1: CALL wrpsg1 	; write the low tone byte to R0
         db	 PSGR0		;  ...
         ghi  rd
         CALL wrpsg1	  ; write the high tone byte to R1
@@ -101,7 +138,11 @@ playa1:	CALL ldnote	  ; get the tone generator setting
 ; Play the MIDI note in D on PSG#2 tone generator A ...
 playa2:	CALL ldnote		; get the tone generator setting
         glo  rd
-        CALL wrpsg2 	; write the low tone byte to R0
+        lbnz conta2   ; non-zero so continue
+        ghi  rd
+        lbz  mutea2   ; if zero mute channel instead
+        glo  rd
+conta2: CALL wrpsg2 	; write the low tone byte to R0
         db	 PSGR0		;  ...
         ghi  rd
         CALL wrpsg2  	; write the high tone byte to R1
@@ -118,7 +159,11 @@ playa2:	CALL ldnote		; get the tone generator setting
 ; Play the MIDI note in D on PSG#1 tone generator B ...
 playb1:	CALL ldnote		; get the tone generator setting
         glo  rd
-        CALL wrpsg1 	; write the low tone byte to R2
+        lbnz contb1   ; non-zero so continue
+        ghi  rd
+        lbz  muteb1   ; if zero mute channel instead
+        glo  rd
+contb1: CALL wrpsg1 	; write the low tone byte to R2
         db	 PSGR2		;  ...
         ghi  rd
         CALL wrpsg1 	; write the high tone byte to R3
@@ -135,7 +180,11 @@ playb1:	CALL ldnote		; get the tone generator setting
 ; Play the MIDI note in D on PSG#2 tone generator B ...
 playb2:	CALL ldnote		; get the tone generator setting
         glo  rd
-        CALL wrpsg2 	; write the low tone byte to R2
+        lbnz contb2   ; non-zero so continue
+        ghi  rd
+        lbz  muteb2   ; if zero mute channel instead
+        glo  rd
+contb2: CALL wrpsg2 	; write the low tone byte to R2
         db	 PSGR2		;  ...
         ghi  rd
         CALL wrpsg2 	; write the high tone byte to R3
@@ -152,7 +201,11 @@ playb2:	CALL ldnote		; get the tone generator setting
 ; Play the MIDI note in D on PSG#1 tone generator C ...
 playc1:	CALL ldnote		; get the tone generator setting
         glo  rd
-        CALL wrpsg1	  ; write the low tone byte to R4
+        lbnz contc1   ; non-zero so continue
+        ghi  rd
+        lbz  mutec1   ; if zero mute channel instead
+        glo  rd
+contc1: CALL wrpsg1	  ; write the low tone byte to R4
         db	 PSGR4		;  ...
         ghi  rd
         CALL wrpsg1 	; write the high tone byte to R5
@@ -169,7 +222,11 @@ playc1:	CALL ldnote		; get the tone generator setting
 ; Play the MIDI note in D on PSG#2 tone generator C ...
 playc2:	CALL ldnote 	; get the tone generator setting
         glo  rd
-        CALL wrpsg2 	; write the low tone byte to R4
+        lbnz contc2   ; non-zero so continue
+        ghi  rd
+        lbz  mutec2   ; if zero mute channel instead
+        glo  rd
+contc2: CALL wrpsg2 	; write the low tone byte to R4
         db	 PSGR4		;  ...
         ghi  rd
         CALL wrpsg2   ; write the high tone byte to R5
@@ -345,9 +402,16 @@ wrpsg2:	sex  r6
 
 
 ; Load the note table entry for the note in D into rd ...
-ldnote:	adi	 PSGKEY		          ; transpose the note if desired
+ldnote:	str  r2                 ; save note value in M(X)
+        glo  rc                 ; get midi key offset
+        add       		          ; transpose the note if desired
 	      shl     			          ; multiply the index by two
-	      adi	 midinote.0	        ; index into the MIDI note table
+        lbnf ld_ok              ; if DF = 0, index + offset within table
+        ldi  0                  ; if out of range, set to zero
+        plo  rd                 ; return with zero to mute channel
+        phi  rd
+        RETURN
+ld_ok:  adi	 midinote.0	        ; index into the MIDI note table
 	      plo  r7		              ; and save that in the pointer
 	      ldi  midinote.1	        ; then set the high part 
 	      adci 0             		  ; include any carry
@@ -356,5 +420,5 @@ ldnote:	adi	 PSGKEY		          ; transpose the note if desired
         phi  rd		   
 	      ldn  r7
         plo  rd		              ; and the low byte
-	      RETURN			
+        RETURN			
         endp
