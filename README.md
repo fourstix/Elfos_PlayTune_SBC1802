@@ -8,16 +8,13 @@ Platform
 These programs were written to run on a Spare Time Gizmos [SBC1802 microcomputer](https://github.com/SpareTimeGizmos/SBC1802) with the Expansion Board.  The Expansion board must have both AY-3-8912 programmable sound generator chips installed.
 
 
-Playtune
----------
+Programs
+----------
 
 ## playtune
 **Usage:** playtune [-f | -sn | -on] [*filename*]    
 Play the miditones tune file *filename* through the PSG chips on the SBC1802 Expansion board. Pressing input will stop the playing immediately. The option -f (*force*) will play the file
 without checking for the presence of the PSG chips. The option -sn  where n is a positive or negative integer, while shift the pitch up (positive) or down (negative) n half-tones. The option -on  where n is a positive or negative integer, while shift the pitch up (positive) or down (negative) n octaves.
-
-Demo Programs
---------------
 
 ## ruins_athens
 **Usage:** ruins_athens  
@@ -38,7 +35,7 @@ PSG_SBC1802 Library
 <table>
 <tr><th>API Name</th><th>RF</th><th>RC.0</th><th>Returns</th></tr>
 <tr><td>psg_detect</td><td> - </td><td> - </td><td>DF = 1, PSG hardware *not* present. DF = 0, PSG's OK.</td></tr>
-<tr><td>psg_player</td><td>Pointer to buffer with tune data to play.</td><td>midi key offset</td><td>DF = 1, Play stopped by pressing input.</td></tr>
+<tr><td>psg_player</td><td>Pointer to buffer with tune data to play.</td><td>midi key offset as signed byte value</td><td>DF = 1, Play stopped by pressing input.</td></tr>
 </table>
 
 ## Private API List 
@@ -70,20 +67,20 @@ Repository Contents
 -------------------
  
 * **/src/**  -- Common source files for assembling Elf/OS utilities.
-* **/src/include/**  -- Include files for Elf/OS file utilities.
-  * ops.inc - Opcode definitions for Asm/02.
-  * bios.inc - Bios definitions from Elf/OS
-  * kernel.inc - Kernel definitions from Elf/OS
-  * psg_sbc1802.inc - PSG_SBC1802 library public API definitions.
-  * sbc1802_psg.inc - PSG SBC1802 hardware definitions.
-* **/src/demo/**  -- Source files for PSG SBC1802 demo programs.
-  * build.bat - Windows batch file to assemble the demo source files with Asm/02 to create object files and then use Link/02 to link the object files into a binary file.  Replace [Your_Path] with the correct path information for your system.
-  * clean.bat - Windows batch file to delete binary and object files from previous builds.
-  * minuet.asm - demonstrates how to play a tune with a pitch change to the data in the assembly file listing using the PSB_SBC1802 library.
-  * ruins_athens.asm - demonstrates how to play a tune through an assembly file listing using the PSB_SBC1802 library.
-* **/src/playtune/**  -- Source files for Elf/OS playtune program. 
-  * playtune.asm - assembly source file for the playtune program.
-  * playtune.bat -  Windows batch file to assemble the playtune source file with Asm/02 to create object files and then use Link/02 to link the object file and the psg_sbc1802 library into a binary file.  Replace [Your_Path] with the correct path information for your system.
+  * **/src/include/**  -- Include files for Elf/OS file utilities.
+    * ops.inc - Opcode definitions for Asm/02.
+    * bios.inc - Bios definitions from Elf/OS
+    * kernel.inc - Kernel definitions from Elf/OS
+    * psg_sbc1802.inc - PSG_SBC1802 library public API definitions.
+    * sbc1802_psg.inc - PSG SBC1802 hardware definitions.
+  * **/src/demo/**  -- Source files for PSG SBC1802 demo programs.
+    * build.bat - Windows batch file to assemble the demo source files with Asm/02 to create object files and then use Link/02 to link the object files into a binary file.  Replace [Your_Path] with the correct path information for your system.
+    * clean.bat - Windows batch file to delete binary and object files from previous builds.
+    * minuet.asm - demonstrates how to play a tune with a pitch change to the data in the assembly file listing using the PSB_SBC1802 library.
+    * ruins_athens.asm - demonstrates how to play a tune through an assembly file listing using the PSB_SBC1802 library.
+  * **/src/playtune/**  -- Source files for Elf/OS playtune program. 
+    * playtune.asm - assembly source file for the playtune program.
+    * playtune.bat -  Windows batch file to assemble the playtune source file with Asm/02 to create object files and then use Link/02 to link the object file and the psg_sbc1802 library into a binary file.  Replace [Your_Path] with the correct path information for your system.
   * **/src/lib/**  -- Library files for Elf/OS playtune and demo programs. 
     * psg_sbc1802.lib - library file for the PSG SBC1802 API.
   * **/src/psg_SBC1802/** -- source files for the PSG SBC1802 libary
@@ -95,16 +92,15 @@ Repository Contents
     * psg_play_stream.asm - source file for the private data stream function
     * psg_midi_notes.asm - source file for the midi number to PSG frequency table
     * psg_end.asm - source file for the private stop function
-  * **/bin/** -- binary files for Elf/OS playtune and demo programs. 
-  * **/lib/** -- PSG SBC1802 library and include file for public API
-    * psg_sbc1802.lib - library file for the PSG SBC1802 API.
-    * psg_sbc1802.inc - include file for the PSG SBC1802 public API.
-  * **/tools/** -- tool files used to produce tune data files from midi files
-    * miditones.exe - executable program to produce tune data from midi files. See the (miditones)[https://github.com/LenShustek/miditones] project on GitHub for more information.
-    * miditones.c - source file written by Len Shustek for the miditones program.
-    * convert.bat - sample Windows batch file to convert a midi file into a tune file.  Replace [Your_Path] with the correct path information for your system.
-  * **/tunes/** - sample tune files created with miditones  
-        
+* **/bin/** -- binary files for Elf/OS playtune and demo programs. 
+* **/lib/** -- PSG SBC1802 library and include file for public API
+  * psg_sbc1802.lib - library file for the PSG SBC1802 API.
+  * psg_sbc1802.inc - include file for the PSG SBC1802 public API.
+* **/tools/** -- tool files used to produce tune data files from midi files
+  * miditones.exe - executable program to produce tune data from midi files. See the (miditones)[https://github.com/LenShustek/miditones] project on GitHub for more information.
+  * miditones.c - source file written by Len Shustek for the miditones program.
+  * convert.bat - sample Windows batch file to convert a midi file into a tune file.  Replace [Your_Path] with the correct path information for your system.
+* **/tunes/** - sample tune files created with miditones          
           
   License Information
 -------------------
