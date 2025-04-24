@@ -104,7 +104,7 @@ Repository Contents
   * psg_sbc1802.lib - library file for the PSG SBC1802 API.
   * psg_sbc1802.inc - include file for the PSG SBC1802 public API.  
 * **/tools/** -- tool files used to produce tune data files from midi files
-  * miditones.exe - executable program to produce tune data from midi files. See the (miditones)[https://github.com/LenShustek/miditones] project on GitHub for more information.
+  * miditones.exe - executable program to produce tune data from midi files. See the [miditones](https://github.com/LenShustek/miditones) project for more information.
   * miditones.c - source file written by Len Shustek for the miditones program.
   * convert.bat - sample Windows batch file to convert a midi file into a tune file.  Replace [Your_Path] with the correct path information for your system.
 * **/tunes/** - sample tune files created with miditones          
