@@ -20,7 +20,7 @@ Demo Programs
 --------------
 
 ## ruins_athens
-**Usage:** minuet    
+**Usage:** ruins_athens  
 Plays the *Turkish March* from *The Ruins of Athens by Beethoven* through the PSG chips on the SBC1802 Expansion board.  This file demonstrates how to play a tune through an assembly file listing using the PSB_SBC1802 library.
 
 ## minuet
@@ -31,7 +31,21 @@ Plays the *Minuet in G by JS Bach/Christian Petzold* through the PSG chips on th
 PSG_SBC1802 Library
 ---------------------
 
+## Public API List
+* psg_detect - function to check for PSG hardware
+* psg_player - function to play tune data
 
+<table>
+<tr><th>API Name</th><th>RF</th><th>RC.0</th><th>Returns</th></tr>
+<tr><td>psg_detect</td><td> - </td><td> - </td><td>DF = 1, PSG hardware *not* present. DF = 0, PSG's OK.</td></tr>
+<tr><td>psg_player</td><td>Pointer to buffer with tune data to play.</td><td>midi key offset</td><td>DF = 1, Play stopped by pressing input.</td></tr>
+</table>
+
+## Private API List 
+* psg_begin - Initialize both PSG's and set the I/O group for sound generator
+* psg_play_stream - Send a stream of tune data bytes to the PSG's
+* psg_midi_notes - table to convert a midi note number to a PSG frequency
+* psg_end - silence both PSG's and set the I/O group back to the SBC1802 base group.
 
 Tools
 -----
@@ -42,6 +56,9 @@ The tunes were created using the basic set of options *-t=6 -pi -b* for 6 channe
 
 Tunes
 ------
+The following binary files can be played with the command *playtune tunefile* where 
+tune file is one of the files below.  All of these melodies are in the Public Domain.
+
 * athens.tune - Turkish March from *The Ruins of Athens* by Ludwig van Beethoven
 * fur_elise.tune - Fur Elise (Bagatelle No. 25) by Ludwig van Beethoven
 * jesu.tune - Jesu, Joy of Man's Desiring (BWV 147) by J.S. Bach
@@ -60,10 +77,36 @@ Repository Contents
   * psg_sbc1802.inc - PSG_SBC1802 library public API definitions.
   * sbc1802_psg.inc - PSG SBC1802 hardware definitions.
 * **/src/demo/**  -- Source files for PSG SBC1802 demo programs.
-  * build.bat - Windows batch file to assemble the demo source files with Asm/02 to create object files and then use Link/02 to link the object files into a binary file.
+  * build.bat - Windows batch file to assemble the demo source files with Asm/02 to create object files and then use Link/02 to link the object files into a binary file.  Replace [Your_Path] with the correct path information for your system.
   * clean.bat - Windows batch file to delete binary and object files from previous builds.
-
-License Information
+  * minuet.asm - demonstrates how to play a tune with a pitch change to the data in the assembly file listing using the PSB_SBC1802 library.
+  * ruins_athens.asm - demonstrates how to play a tune through an assembly file listing using the PSB_SBC1802 library.
+* **/src/playtune/**  -- Source files for Elf/OS playtune program. 
+  * playtune.asm - assembly source file for the playtune program.
+  * playtune.bat -  Windows batch file to assemble the playtune source file with Asm/02 to create object files and then use Link/02 to link the object file and the psg_sbc1802 library into a binary file.  Replace [Your_Path] with the correct path information for your system.
+  * **/src/lib/**  -- Library files for Elf/OS playtune and demo programs. 
+    * psg_sbc1802.lib - library file for the PSG SBC1802 API.
+  * **/src/psg_SBC1802/** -- source files for the PSG SBC1802 libary
+    * build.bat - Windows batch file to assemble the source files with Asm/02 and create the PSG SBC1802 libary.  Replace [Your_Path] with the correct path information for your system.
+    * clean.bat - Windows batch file to delete binary and object files from previous builds
+    * psg_detect.asm - source file for the public API function to check for PSG's
+    * psg_player.asm - source file for the public API function to play tune data
+    * psg_begin.asm - source file for the private start function
+    * psg_play_stream.asm - source file for the private data stream function
+    * psg_midi_notes.asm - source file for the midi number to PSG frequency table
+    * psg_end.asm - source file for the private stop function
+  * **/bin/** -- binary files for Elf/OS playtune and demo programs. 
+  * **/lib/** -- PSG SBC1802 library and include file for public API
+    * psg_sbc1802.lib - library file for the PSG SBC1802 API.
+    * psg_sbc1802.inc - include file for the PSG SBC1802 public API.
+  * **/tools/** -- tool files used to produce tune data files from midi files
+    * miditones.exe - executable program to produce tune data from midi files. See the (miditones)[https://github.com/LenShustek/miditones] project on GitHub for more information.
+    * miditones.c - source file written by Len Shustek for the miditones program.
+    * convert.bat - sample Windows batch file to convert a midi file into a tune file.  Replace [Your_Path] with the correct path information for your system.
+  * **/tunes/** - sample tune files created with miditones  
+        
+          
+  License Information
 -------------------
   
 This code is public domain under the MIT License, but please buy me a beverage
@@ -75,17 +118,25 @@ that they will be available in all countries in which their respective owner ope
 Any company, product, or services names may be trademarks or services marks of others.
   
 All libraries used in this code are copyright their respective authors.
+
+All of the melodies used for the tune files are in the Public Domain.
   
-This code is based on a Elf/OS code libraries written by Mike Riley and assembled with the Asm/02 assembler also written by Mike Riley.
+This code is based on a Elf/OS code libraries written by Mike Riley and assembled with the Asm/02 assembler and liked with the Link/02 linker written by Mike Riley.
   
 Elf/OS 
-Copyright (c) 2004-2024 by Mike Riley
+Copyright (c) 2004-2025 by Mike Riley
 
 Mini-DOS 
-Copyright (c) 2024-2025 by David Madole
+Copyright (c) 2025-2025 by David Madole
   
 Asm/02 1802 Assembler 
-Copyright (c) 2004-2024 by Mike Riley
+Copyright (c) 2004-2025 by Mike Riley
+
+Link/02 1802 Linker 
+Copyright (c) 2004-2025 by Mike Riley
+
+Miditone 
+Copyright (c) 2016-2025 by Len Shustek
      
 The STG SBC1802 Baseboard hardware 
 Copyright (c) 2024-2025 by Spare Time Gizmos.
@@ -93,9 +144,7 @@ Copyright (c) 2024-2025 by Spare Time Gizmos.
 SBC1802 Expansion Card hardware 
 Copyright (c) 2024-2025 by Spare Time Gizmos.
   
-The 1802-Mini Microcomputer Hardware 
-Copyright (c) 2020-2024 by David Madole
-  
+
 Many thanks to the original authors for making their designs and code available as open source.
    
 This code, firmware, and software is released under the [MIT License](http://opensource.org/licenses/MIT).
