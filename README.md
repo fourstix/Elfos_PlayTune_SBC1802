@@ -14,6 +14,7 @@ Programs
 ## playtune
 **Usage:** playtune [-f | -sn | -on] [*filename*]    
 Play the miditones tune file *filename* through the PSG chips on the SBC1802 Expansion board. Pressing input will stop the playing immediately. 
+
 **Options:**
 * The option -f (*force*) will play the file without checking for the presence of the PSG chips. 
 * The option -sn  where n is a positive or negative integer, while shift the pitch up (positive) or down (negative) n half-tones. 
@@ -105,7 +106,7 @@ Repository Contents
   * convert.bat - sample Windows batch file to convert a midi file into a tune file.  Replace [Your_Path] with the correct path information for your system.
 * **/tunes/** - sample tune files created with miditones          
           
-  License Information
+License Information
 -------------------
   
 This code is public domain under the MIT License, but please buy me a beverage
