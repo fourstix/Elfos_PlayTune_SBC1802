@@ -1,5 +1,5 @@
 # Elfos_PlayTune_SBC1802
-An 1802 Library and programs for the SBC1802 AY-3-8912 Programmable Sound Generators (PSG).
+An 1802 library and programs for the SBC1802 AY-3-8912 Programmable Sound Generators (PSG).
 The library and programs were assembled into 1802 binary files using the [Asm/02 1802 Assembler](https://github.com/fourstix/Asm-02), the [Link/02 1802 Linker](https://github.com/fourstix/Link-02).
 
 Platform  
@@ -36,7 +36,7 @@ PSG_SBC1802 Library
 ---------------------
 
 ## Public API List
-* psg_detect - function to check for PSG hardware
+* psg_detect - function to check for the PSG hardware
 * psg_player - function to play tune data
 
 <table>
@@ -48,8 +48,8 @@ PSG_SBC1802 Library
 ## Private API List 
 * psg_begin - Initialize both PSG's and set the I/O group for sound generator
 * psg_play_stream - Send a stream of tune data bytes to the PSG's
-* psg_midi_notes - table to convert a midi note number to a PSG frequency
-* psg_end - silence both PSG's and set the I/O group back to the SBC1802 base group.
+* psg_midi_notes - Table to convert a midi note number to a PSG frequency
+* psg_end - Silence both PSG's and set the I/O group back to the SBC1802 base group
 
 Tools
 -----
@@ -138,7 +138,7 @@ Copyright (c) 2004-2025 by Mike Riley
 Link/02 1802 Linker 
 Copyright (c) 2004-2025 by Mike Riley
 
-Miditone 
+Miditones
 Copyright (c) 2016-2025 by Len Shustek
      
 The STG SBC1802 Baseboard hardware 
@@ -147,7 +147,6 @@ Copyright (c) 2024-2025 by Spare Time Gizmos.
 SBC1802 Expansion Card hardware 
 Copyright (c) 2024-2025 by Spare Time Gizmos.
   
-
 Many thanks to the original authors for making their designs and code available as open source.
    
 This code, firmware, and software is released under the [MIT License](http://opensource.org/licenses/MIT).
