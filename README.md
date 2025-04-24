@@ -17,8 +17,11 @@ Play the miditones tune file *filename* through the PSG chips on the SBC1802 Exp
 
 **Options:**
 * The option -f (*force*) will play the file without checking for the presence of the PSG chips. 
-* The option -sn  where n is a positive or negative integer, while shift the pitch up (positive) or down (negative) n half-tones. 
+* The option -sn  where n is a positive or negative integer, while shift the pitch up (positive) or down (negative) n semi-tones. 
 * The option -on  where n is a positive or negative integer, while shift the pitch up (positive) or down (negative) n octaves.
+
+**Note:** An octave is comprised of 12 semi-tones.  So the option *-s12* is equivalent to *-o1*, and *-s-12* is equivalent to *-o-1*.
+
 
 ## ruins_athens
 **Usage:** ruins_athens  
